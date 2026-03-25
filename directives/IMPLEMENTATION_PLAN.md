@@ -44,13 +44,12 @@ mlbb-drafting-assistant/
 
 | Phase | Name | Deliverable | Status |
 |---|---|---|---|
-| 0 | Foundation | Repo scaffold, data schema, agent config | 🔲 Not Started |
-| 1 | MCP Server | Working MCP server with 4 tools | 🔲 Not Started |
-| 2 | Engine | Counter, composition, and lane logic | 🔲 Not Started |
-| 3 | Backend API | Express routes wiring engine to MCP | 🔲 Not Started |
+| 0 | Foundation | Repo scaffold, dynamic data flow | ✅ Complete |
+| 1 | MCP Server | API-Proxied MCP server with 4 tools | ✅ Complete |
+| 2 | Engine | Counter, composition, and lane logic | ✅ Complete |
+| 3 | Backend API | Express routes wiring engine to MCP | ✅ Complete |
 | 4 | Frontend | Draft board UI with live suggestions | 🔲 Not Started |
-| 5 | Data Population | `heroes.json` seeded with full roster | 🔲 Not Started |
-| 6 | Integration | End-to-end flow tested and deployed | 🔲 Not Started |
+| 5 | Integration | End-to-end flow tested and deployed | 🔲 Not Started |
 
 ---
 
@@ -68,36 +67,27 @@ mlbb-drafting-assistant/
 - [ ] Write `directives/add_hero.md` — SOP for adding or updating a hero entry
 
 ### Definition of Done
-Repo clones cleanly, `heroes.json` validates against schema, and agents can read directives without ambiguity.
+## Phase 0: Foundation ✅
+- [x] Establish monorepo structure
+- [x] Set up environment variables (`.env`)
+- [x] Define data flow: **External API → MCP Proxy → Backend Engine → UI**
+- [x] Map upstream source: [ridwaanhall/api-mobilelegends](https://github.com/ridwaanhall/api-mobilelegends) (MLBB Public Data API)
 
 ---
 
-## Phase 1 — MCP Server
+## Phase 1: MCP Server (API Proxy) ✅
+- [x] Install `@modelcontextprotocol/sdk` in `mcp-server/`
+- [x] Implement `heroStore.js` — fetches and caches live data from [MLBB Public Data API](https://mlbb-stats.rone.dev/api)
+- [x] Implement `get_hero_stats` tool — returns full hero metadata (proxied from external API)
+- [x] Implement `get_counters` tool — returns counter heroes mapped from external API relations
+- [x] Implement `get_synergies` tool — scores a set of hero IDs for synergy
+- [x] Implement `get_team_score` tool — returns composition balance score
+- [x] Write `directives/mcp_server.md` — documents each tool, inputs/outputs
 
-**Goal**: Ship a working MCP server that exposes hero data as typed tools consumable by the backend engine.
-
-### Tasks
-
-- [ ] Install `@modelcontextprotocol/sdk` in `mcp-server/`
-- [ ] Implement `heroStore.js` — reads and indexes `heroes.json` by `hero_id`
-- [ ] Implement `get_hero_stats` tool — returns full hero metadata by ID
-- [ ] Implement `get_counters` tool — returns counter heroes with reason labels
-- [ ] Implement `get_synergies` tool — scores a set of hero IDs for synergy
-- [ ] Implement `get_team_score` tool — returns composition balance score
-- [ ] Write `execution/validate_heroes.py` — validates `heroes.json` against schema, flags missing fields
-- [ ] Write `directives/mcp_server.md` — documents each tool, expected inputs/outputs, and error handling
-
-### Tool Contract
-
-```
-get_hero_stats(hero_id)        → HeroMetadata
-get_counters(hero_id)          → Array<{ hero: HeroMetadata, reason: string }>
-get_synergies(hero_ids[])      → { score: number, combos: string[] }
-get_team_score(hero_ids[])     → { total: number, flags: string[] }
-```
-
-### Definition of Done
-All 4 tools return correct data for seed heroes. `validate_heroes.py` passes with zero errors.
+### Data Integrity Policy
+- **Zero Local Data**: No hero stats, roles, or relations are stored in this repository.
+- **Dynamic Fetching**: Every startup of the MCP server pulls the latest roster from the external API to ensure patch-accuracy.
+- **Source of Truth**: All logic relies on the data schema provided by the `ridwaanhall/api-mobilelegends` documentation.
 
 ---
 
@@ -108,17 +98,18 @@ All 4 tools return correct data for seed heroes. `validate_heroes.py` passes wit
 ### Tasks
 
 - [ ] Implement `backend/engine/counterPick.js`
+- [x] Implement `backend/engine/counterPick.js`
   - Aggregates counter overlap across all enemy picks
   - Filters already-picked heroes
   - Returns top 5 by overlap score × tier weight
-- [ ] Implement `backend/engine/teamComposition.js`
+- [x] Implement `backend/engine/teamComposition.js`
   - Scores 5 pillars (Damage Split, Frontline, CC Chain, Power Stage, Lane Coverage)
   - Returns `{ total: 0–100, flags: string[] }`
-- [ ] Implement `backend/engine/laneCheck.js`
+- [x] Implement `backend/engine/laneCheck.js`
   - Maps hero roles to MLBB lanes
   - Returns `{ Gold, EXP, Mid, Jungle, Roam }` coverage object
-- [ ] Write unit tests for each engine module (`/backend/engine/__tests__/`)
-- [ ] Write `directives/recommendation_engine.md` — documents scoring weights, pillar logic, and edge cases
+- [x] Write unit tests for each engine module (`/backend/engine/__tests__/`)
+- [x] Write `directives/recommendation_engine.md` — documents scoring weights, pillar logic, and edge cases
 
 ### Scoring Weights (v1)
 
@@ -143,10 +134,12 @@ MCP Server - https://github.com/ridwaanhall/api-mobilelegends
 
 ### Tasks
 
-- [ ] Initialize Express app in `backend/`
-- [ ] Create MCP client utility (`backend/mcp/client.js`) — wraps SDK calls with error handling and retry
-- [ ] Implement `POST /api/suggest` — accepts `{ allied: [], enemy: [] }`, returns suggestions + score
-- [ ] Implement `GET /api/heroes` — returns full hero list for frontend autocomplete
+- [x] Initialise `backend/package.json`
+- [x] Implement `backend/mcp/client.js` — establishes connection to local MCP server
+- [x] Implement `backend/routes/draft.js` — exposes `/api/recommend` and `/api/composition`
+- [x] Implement `backend/index.js` — main entry point (Express.js)
+- [x] Create `directives/mlbb_public_api.md` — document external API data schema and mapping.
+- [x] End-to-end connectivity check (Backend -> MCP -> Remote API) list for frontend autocomplete
 - [ ] Implement `GET /api/hero/:id` — returns single hero metadata
 - [ ] Add request validation (Zod or Joi) on all POST routes
 - [ ] Write `directives/backend_api.md` — documents all routes, payloads, and error codes

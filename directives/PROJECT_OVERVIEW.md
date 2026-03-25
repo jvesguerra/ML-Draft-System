@@ -9,10 +9,8 @@
 
 ## Technical Stack & Infrastructure
 
-- **Platform**: Full-Stack JavaScript (React frontend + Node.js/Express backend). The backend serves as an MCP host that brokers hero data between the data layer and the recommendation engine.
-- **MCP Layer**: A Model Context Protocol server exposes structured hero tools (`get_hero_stats`, `get_counters`, `get_synergies`) consumed by the AI recommendation engine.
-- **Hosting**: Frontend on Vercel; backend and MCP server on Railway or Render. Hero metadata stored in a local JSON flat-file database (easily swappable to PostgreSQL).
-- **Data Architecture**: Hero metadata (stats, tags, counters, synergies) lives in a versioned JSON schema. The MCP server reads from this store and exposes it as typed resources. Draft state is managed client-side.
+- **Hosting**: Frontend on Vercel; backend and MCP server on Railway or Render.
+- **Data Architecture**: Hero metadata (stats, tags, counters, synergies) is fetched dynamically from the [MLBB Public Data API](https://mlbb-stats.rone.dev/api/docs). The MCP server acts as a proxy, fetching and caching the roster at runtime. Draft state is managed client-side.
 
 ---
 
@@ -31,14 +29,14 @@
 └──────────────────┬──────────────────────────┘
                    │ MCP Tool Calls
 ┌──────────────────▼──────────────────────────┐
-│              MCP Server                     │
+│         MCP Server (API Proxy)              │
 │  get_hero_stats  │  get_counters            │
 │  get_synergies   │  get_team_score          │
 └──────────────────┬──────────────────────────┘
-                   │
+                   │ Fetch at Runtime
 ┌──────────────────▼──────────────────────────┐
-│         Hero Metadata Store (JSON)          │
-│  heroes.json — stats, tags, counters, etc.  │
+│        MLBB Public Data API (Remote)        │
+│    https://mlbb-stats.rone.dev/api          │
 └─────────────────────────────────────────────┘
 ```
 
