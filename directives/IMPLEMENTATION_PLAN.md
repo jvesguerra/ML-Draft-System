@@ -48,7 +48,7 @@ mlbb-drafting-assistant/
 | 1 | MCP Server | API-Proxied MCP server with 4 tools | ✅ Complete |
 | 2 | Engine | Counter, composition, and lane logic | ✅ Complete |
 | 3 | Backend API | Express routes wiring engine to MCP | ✅ Complete |
-| 4 | Frontend | Draft board UI with live suggestions | 🔲 Not Started |
+| 4 | Frontend | Draft board UI with live suggestions | ✅ Complete |
 | 5 | Integration | End-to-end flow tested and deployed | 🔲 Not Started |
 
 ---
@@ -169,10 +169,12 @@ Postman/curl call to `POST /api/suggest` with a valid body returns ranked sugges
 
 ### Tasks
 
-- [ ] Scaffold React/Vite app in `frontend/`
-- [ ] Implement `HeroSearch` component — searchable dropdown with hero avatar thumbnails
-- [ ] Implement `DraftBoard` component — two columns (Allied / Enemy), 5 slots each
-- [ ] Implement `SuggestedPicks` panel — top 5 recommendations with reason tags
+- [x] Initialize React app with Vite in `frontend/`
+- [x] Implement `index.css` design system (Color tokens, Glassmorphism, Animations)
+- [x] Implement `DraftBoard.jsx` logic in `App.jsx` — state management for Allied/Enemy picks
+- [x] Implement `AnalysisPanel` logic in `App.jsx` — triggers engine via backend API
+- [x] Responsive layout with Flexbox/Grid
+- [x] Polish UI with Lucide-icons and transitionss with reason tags
 - [ ] Implement `DraftStrengthMeter` — progress bar (0–100) with color ramp and flag list
 - [ ] Implement `LaneCoverageBar` — 5-lane indicator showing filled/missing lanes
 - [ ] Wire all components to `POST /api/suggest` on each pick change

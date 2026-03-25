@@ -1,0 +1,79 @@
+:root {
+  --bg-dark: #0a0e1b;
+  --bg-panel: rgba(20, 24, 40, 0.8);
+  --accent-gold: #d4af37;
+  --accent-blue: #007aff;
+  --accent-red: #ff3b30;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0c0;
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background: radial-gradient(circle at 50% -20%, #1a1e3b 0%, var(--bg-dark) 80%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.glass {
+  background: var(--bg-panel);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #d4af37, #f1c40f);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-card {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid transparent;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.hero-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-gold);
+}
+
+.hero-card.empty {
+  background: rgba(40, 48, 80, 0.3);
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+}
+
+.draft-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.allied-slot { border-left: 4px solid var(--accent-blue); }
+.enemy-slot  { border-right: 4px solid var(--accent-red); }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.4s forwards;
+}
