@@ -3,11 +3,18 @@
  * Aggregates counter data across all enemy picks and identifies 
  * heroes that overlap as counters to multiple enemies.
  */
-export async function suggestCounters(enemyPicks, alliedPicks, mcpClient) {
+export async function suggestCounters(enemyPicks, alliedPicks, alliedBans, enemyBans, mcpClient) {
   const counterMap = {};
-  const alreadyPicked = new Set([...enemyPicks, ...alliedPicks]);
+  
+  // Clean input set to avoid matching empty strings or nulls
+  const cleanEnemy = enemyPicks.filter(id => id && id.trim() !== "");
+  const cleanAllied = alliedPicks.filter(id => id && id.trim() !== "");
+  const cleanABans = alliedBans.filter(id => id && id.trim() !== "");
+  const cleanEBans = enemyBans.filter(id => id && id.trim() !== "");
+  
+  const alreadyPicked = new Set([...cleanEnemy, ...cleanAllied, ...cleanABans, ...cleanEBans]);
 
-  for (const enemyId of enemyPicks) {
+  for (const enemyId of cleanEnemy) {
     try {
       // Call MCP Tool: get_counters
       const result = await mcpClient.callTool("get_counters", { hero_id: enemyId });
@@ -16,6 +23,8 @@ export async function suggestCounters(enemyPicks, alliedPicks, mcpClient) {
       const counters = JSON.parse(result.content[0].text);
       
       for (const entry of counters) {
+        if (!entry.hero || !entry.hero.hero_id || !entry.hero.name || entry.hero.name === "Unknown") continue;
+        
         const hId = entry.hero.hero_id;
         if (alreadyPicked.has(hId)) continue;
         

@@ -10,6 +10,7 @@ dist/
 build/
 out/
 .next/
+#plans/
 
 # Python
 __pycache__/

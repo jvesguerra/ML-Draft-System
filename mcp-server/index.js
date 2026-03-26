@@ -5,8 +5,27 @@ import { heroStore } from "./heroStore.js";
 
 const server = new McpServer({
   name: "mlbb-hero-data",
-  version: "1.1.0"
+  version: "1.2.0"
 });
+
+// Tool: get_hero_list
+server.tool(
+  "get_hero_list",
+  "Returns a list of all hero names and IDs for autocomplete",
+  {},
+  async () => {
+    if (!heroStore.initialized) await heroStore.init();
+    const heroes = Array.from(heroStore.heroMap.values()).map(h => ({
+      hero_id: h.hero_id,
+      name: h.name,
+      role: h.role,
+      lane: h.lane
+    }));
+    return {
+      content: [{ type: "text", text: JSON.stringify(heroes) }],
+    };
+  }
+);
 
 // Tool: get_hero_stats
 server.tool(
@@ -78,10 +97,29 @@ server.tool(
 server.tool(
   "get_team_score",
   "Returns composition balance score",
-  { hero_ids: z.array(z.string()).describe("Array of hero IDs") },
-  async ({ hero_ids }) => {
+  { 
+    hero_ids: z.array(z.string()).describe("Array of hero IDs"),
+    assignments: z.array(z.object({
+      hero_id: z.string(),
+      role: z.string().optional(),
+      lane: z.string().optional()
+    })).optional().describe("Manual role/lane assignments")
+  },
+  async ({ hero_ids, assignments = [] }) => {
     if (!heroStore.initialized) await heroStore.init();
-    const heroes = hero_ids.map(id => heroStore.getById(id)).filter(Boolean);
+    
+    const heroes = hero_ids.map(id => {
+      const base = heroStore.getById(id);
+      if (!base) return null;
+      
+      const assignment = assignments.find(a => a.hero_id === id);
+      return {
+        ...base,
+        role: assignment?.role ? [assignment.role] : base.role,
+        lane: assignment?.lane ? [assignment.lane] : base.lane
+      };
+    }).filter(Boolean);
+
     const score = { total: 0, flags: [] };
 
     if (heroes.length === 0) {
@@ -93,7 +131,7 @@ server.tool(
     if (hasPhysical && hasMagic) { score.total += 20; } 
     else { score.flags.push("⚠️ One-sided damage — enemy can build one resistance type"); }
 
-    const hasFrontline = heroes.some(h => h.role.includes("Tank") || h.role.includes("Fighter"));
+    const hasFrontline = heroes.some(h => h.role.some(r => r.includes("Tank") || r.includes("Fighter")));
     if (hasFrontline) { score.total += 20; }
     else { score.flags.push("⚠️ No frontline — team is fragile against divers"); }
 
