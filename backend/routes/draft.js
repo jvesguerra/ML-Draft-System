@@ -13,16 +13,24 @@ router.get("/recommend", async (req, res) => {
   const alliedStr = req.query.allied || "";
   const enemyBansStr = req.query.enemyBans || "";
   const alliedBansStr = req.query.alliedBans || "";
+  const assignmentsStr = req.query.assignments || "[]";
   
   const enemyPicks = enemyStr.split(",").filter(Boolean);
   const alliedPicks = alliedStr.split(",").filter(Boolean);
   const enemyBans = enemyBansStr.split(",").filter(Boolean);
   const alliedBans = alliedBansStr.split(",").filter(Boolean);
+  
+  let assignments = [];
+  try {
+    assignments = JSON.parse(assignmentsStr);
+  } catch (e) {
+    console.error("Invalid assignments JSON in recommend", e);
+  }
 
   try {
-    const suggestions = await suggestCounters(enemyPicks, alliedPicks, alliedBans, enemyBans, mcpBridge);
+    const suggestions = await suggestCounters(enemyPicks, alliedPicks, alliedBans, enemyBans, assignments, mcpBridge);
     const suggestedBans = await suggestBans(enemyPicks, alliedPicks, alliedBans, enemyBans, mcpBridge);
-    const synergySuggestions = await suggestSynergies(alliedPicks, mcpBridge);
+    const synergySuggestions = await suggestSynergies(alliedPicks, assignments, mcpBridge);
     res.json({ suggestions, suggestedBans, synergySuggestions });
   } catch (error) {
     console.error("Draft recommendation error:", error);

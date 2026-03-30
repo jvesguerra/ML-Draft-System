@@ -17,9 +17,12 @@ server.tool(
     if (!heroStore.initialized) await heroStore.init();
     const heroes = Array.from(heroStore.heroMap.values()).map(h => ({
       hero_id: h.hero_id,
+      numeric_id: h.numeric_id,
       name: h.name,
       role: h.role,
-      lane: h.lane
+      lane: h.lane,
+      win_rate: h.win_rate,
+      ban_rate: h.ban_rate
     }));
     return {
       content: [{ type: "text", text: JSON.stringify(heroes) }],
@@ -54,24 +57,14 @@ server.tool(
   { hero_id: z.string().describe("The ID of the hero to find counters for") },
   async ({ hero_id }) => {
     if (!heroStore.initialized) await heroStore.init();
-    const hero = heroStore.getById(hero_id);
-    if (!hero) {
+    const counters = await heroStore.getCountersDetailed(hero_id);
+    
+    if (counters.length === 0) {
       return {
-        content: [{ type: "text", text: JSON.stringify({ error: "Hero not found" }) }],
+        content: [{ type: "text", text: JSON.stringify({ error: "No counters found or hero not found" }) }],
         isError: true,
       };
     }
-    
-    // Weak against = we get counters
-    const weakIds = hero.relation?.weak?.target_hero_id || [];
-    const counters = weakIds.map(nId => {
-      const targetStrId = heroStore.numericToId.get(nId);
-      const counterHero = heroStore.getById(targetStrId);
-      return {
-        hero: counterHero || { hero_id: targetStrId || nId.toString(), error: "Details not found" },
-        reason: heroStore.getCounterReason(hero_id, targetStrId)
-      };
-    });
 
     return {
       content: [{ type: "text", text: JSON.stringify(counters) }],
