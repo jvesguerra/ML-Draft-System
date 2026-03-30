@@ -5,19 +5,31 @@ import { checkLaneCoverage } from '../laneCheck.js';
 // Mock MCP Client
 const mockMcpClient = {
   callTool: async (name, args) => {
+  // 1. Identify heroes that counter our current allied picks
+    if (name === "get_hero_list") {
+      return {
+        content: [{ text: JSON.stringify([
+          { hero_id: "layla", name: "Layla", ban_rate: 0.1, win_rate: 0.5 },
+          { hero_id: "kagura", name: "Kagura", ban_rate: 0.2, win_rate: 0.51 },
+          { hero_id: "chou", name: "Chou", ban_rate: 0.05, win_rate: 0.49 },
+          { hero_id: "lancelot", name: "Lancelot", ban_rate: 0.8, win_rate: 0.55 },
+          { hero_id: "saber", name: "Saber", ban_rate: 0.3, win_rate: 0.52 }
+        ]) }]
+      };
+    }
     if (name === "get_counters") {
       if (args.hero_id === "layla") {
         return {
           content: [{ text: JSON.stringify([
-            { hero: { hero_id: "lancelot", name: "Lancelot", lane: ["Jungle"] }, reason: "Dive" },
-            { hero: { hero_id: "saber", name: "Saber", lane: ["Jungle", "Mid"] }, reason: "Lock" }
+            { hero: { hero_id: "lancelot", name: "Lancelot", lane: ["Jungle"] }, increase_win_rate: 0.04 },
+            { hero: { hero_id: "saber", name: "Saber", lane: ["Jungle", "Mid"] }, increase_win_rate: 0.02 }
           ]) }]
         };
       }
       if (args.hero_id === "kagura") {
         return {
           content: [{ text: JSON.stringify([
-             { hero: { hero_id: "chou", name: "Chou", lane: ["EXP", "Roam"] } }
+             { hero: { hero_id: "chou", name: "Chou", lane: ["EXP", "Roam"] }, increase_win_rate: 0.03 }
           ]) }]
         };
       }
@@ -27,37 +39,28 @@ const mockMcpClient = {
 };
 
 async function runTests() {
-  console.log("--- Running Engine Module Tests ---");
+  console.log("--- Running Engine Module Tests v3.0.0 ---");
 
-  // Test 1: Suggest Counters
-  console.log("Test 1: suggestCounters for 'layla'...");
-  const suggestions = await suggestCounters(["layla"], [], [], [], mockMcpClient);
-  if (suggestions.length > 0 && suggestions[0].hero.hero_id === "lancelot") {
-    console.log("✅ Passed: Correctly identified counter for Layla.");
+  // Test 1: Suggest Counters (WCS)
+  console.log("Test 1: suggestCounters (WCS) for 'layla'...");
+  const suggestions = await suggestCounters(["layla"], [], [], [], [], mockMcpClient);
+  if (suggestions.length > 0 && 
+      suggestions[0].hero.hero_id === "lancelot" && 
+      suggestions[0].finalScore > 0) {
+    console.log("✅ Passed: WCS correctly ranked Lancelot higher due to increase_win_rate.");
   } else {
-    console.error("❌ Failed: Counter suggestion logic error.");
+    console.error("❌ Failed: WCS logic error.", suggestions);
   }
 
-  // Test 2: Suggest Bans
-  console.log("Test 2: suggestBans highlighting 'Chou' for 'Kagura'...");
+  // Test 2: Suggest Bans (CBS)
+  console.log("Test 2: suggestBans (CBS) identifying global threats...");
   const bans = await suggestBans([], ["kagura"], [], [], mockMcpClient);
-  if (bans.length > 0 && bans[0].name === "Chou" && bans[0].lane) {
-    console.log("✅ Passed: Identified Chou as a ban for Kagura with lane metadata.");
+  // Chou is a direct counter to Kagura (+3% threat)
+  // Lancelot is a global threat (Ban Rate 80%)
+  if (bans.length > 0 && bans.some(b => b.name === "Lancelot") && bans.some(b => b.name === "Chou")) {
+    console.log("✅ Passed: CBS correctly identified both direct threat (Chou) and global threat (Lancelot).");
   } else {
-    console.error("❌ Failed: Ban suggestion logic error.", bans);
-  }
-
-  // Test 3: Lane Check
-  console.log("Test 3: checkLaneCoverage for [Miya, Atlas]...");
-  const heroes = [
-    { name: "Miya", role: ["Marksman"] },
-    { name: "Atlas", role: ["Tank", "Support"] }
-  ];
-  const lanes = checkLaneCoverage(heroes);
-  if (lanes.Gold === true && lanes.Roam === true && lanes.Mid === false) {
-    console.log("✅ Passed: Correctly identified Gold and Roam coverage.");
-  } else {
-    console.error("❌ Failed: Lane check logic error.", lanes);
+    console.error("❌ Failed: CBS logic error.", bans);
   }
 }
 

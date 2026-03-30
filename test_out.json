@@ -1,0 +1,7 @@
+{
+  "hero": {
+    "name": "Unknown"
+  },
+  "increase_win_rate": 0.01,
+  "reason": "undefined is statistically effective against layla according to MLBB global data."
+}
