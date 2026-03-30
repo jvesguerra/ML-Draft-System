@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { Search, Trophy, Shield, Sword, RefreshCw, X, Ban, User, MapPin } from 'lucide-react';
+import { Search, Trophy, Shield, Sword, RefreshCw, X, Ban, User } from 'lucide-react';
 
 const API_BASE = "http://localhost:3001/api/draft";
 
@@ -98,7 +98,9 @@ export default function App() {
     }
 
     if (type === 'allied' && alliedPicks.length < 5) {
-      setAlliedPicks([...alliedPicks, { id: id, name: hero.name, role: "", lane: "" }]);
+      const defaultLane = hero.lane && hero.lane.length > 0 ? hero.lane[0] : "";
+      const defaultRole = hero.role && hero.role.length > 0 ? hero.role[0] : "";
+      setAlliedPicks([...alliedPicks, { id: id, name: hero.name, role: defaultRole, lane: defaultLane }]);
     } else if (type === 'enemy' && enemyPicks.length < 5) {
       setEnemyPicks([...enemyPicks, { id: id, name: hero.name, role: "", lane: "" }]);
     } else if (type === 'alliedBan' && alliedBans.length < 5) {
@@ -117,8 +119,8 @@ export default function App() {
   }, [alliedBans, enemyBans]);
 
   const updateAssignment = (id, field, value) => {
-    setAlliedPicks(alliedPicks.map(p => p.id === id ? { ...p, [field]: value } : p));
-    setEnemyPicks(enemyPicks.map(p => p.id === id ? { ...p, [field]: value } : p));
+    setAlliedPicks(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+    setEnemyPicks(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
   };
 
   const removePick = (id, type) => {
@@ -227,7 +229,7 @@ export default function App() {
               <h4>Counter Suggestions</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
                 {suggestions?.map((s, i) => (
-                  <div key={i} className="glass" style={{ padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={i} className="glass animate-in" style={{ padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <strong>{s?.hero?.name || "Unknown"}</strong>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{s?.reason?.split(':')[0]}</div>
@@ -242,7 +244,7 @@ export default function App() {
               <h4>Synergy Suggestions</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
                 {synergySuggestions?.map((s, i) => (
-                  <div key={i} className="glass" style={{ padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={i} className="glass animate-in" style={{ padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <strong>{s?.name}</strong>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{s?.reason}</div>
@@ -306,21 +308,15 @@ const HeroCard = ({ hero, type, onRemove, onUpdate, heroList }) => {
 
   const onLaneChange = (lane) => {
     onUpdate('lane', lane);
-    if (baseHero && baseHero.role && baseHero.role.length > 0) {
-      onUpdate('role', baseHero.role[0]);
-    }
   };
 
   return (
     <div className="glass animate-in" style={{ 
       padding: '12px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px',
-      border: `1px solid ${isAllied ? 'var(--accent-blue)' : 'var(--accent-red)'}`
+      border: `1px solid ${isAllied ? 'rgba(0,122,255,0.3)' : 'rgba(255,59,48,0.3)'}`,
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-           <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{name}</div>
-           {hero.role && <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>{hero.role}</div>}
-        </div>
+        <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{name}</div>
         <X size={16} style={{ cursor: 'pointer', opacity: 0.6 }} onClick={onRemove} />
       </div>
       
@@ -328,15 +324,17 @@ const HeroCard = ({ hero, type, onRemove, onUpdate, heroList }) => {
         <div style={{ display: 'flex', gap: '8px' }}>
           <select 
             className="glass"
-            style={{ padding: '4px', fontSize: '0.8rem', borderRadius: '4px', color: 'white', flex: 1 }}
+            style={{ padding: '6px', fontSize: '0.8rem', borderRadius: '6px', color: 'white', flex: 1, border: '1px solid rgba(255,255,255,0.1)' }}
             value={hero.lane || ""}
             onChange={(e) => onLaneChange(e.target.value)}
           >
-            <option value="">Select Lane...</option>
+            <option value="" disabled>Select Lane...</option>
             {LANES.map(l => <option key={l} value={l}>{l}</option>)}
           </select>
         </div>
       )}
+
+      {hero.role && <div style={{ fontSize: '0.7rem', opacity: 0.5 }}>{hero.role}</div>}
     </div>
   );
 };

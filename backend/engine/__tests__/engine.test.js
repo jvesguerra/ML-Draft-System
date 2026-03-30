@@ -1,4 +1,5 @@
 import { suggestCounters } from '../counterPick.js';
+import { suggestBans } from '../banSuggestions.js';
 import { checkLaneCoverage } from '../laneCheck.js';
 
 // Mock MCP Client
@@ -8,8 +9,15 @@ const mockMcpClient = {
       if (args.hero_id === "layla") {
         return {
           content: [{ text: JSON.stringify([
-            { hero: { hero_id: "lancelot", name: "Lancelot" }, reason: "Dive" },
-            { hero: { hero_id: "saber", name: "Saber" }, reason: "Lock" }
+            { hero: { hero_id: "lancelot", name: "Lancelot", lane: ["Jungle"] }, reason: "Dive" },
+            { hero: { hero_id: "saber", name: "Saber", lane: ["Jungle", "Mid"] }, reason: "Lock" }
+          ]) }]
+        };
+      }
+      if (args.hero_id === "kagura") {
+        return {
+          content: [{ text: JSON.stringify([
+             { hero: { hero_id: "chou", name: "Chou", lane: ["EXP", "Roam"] } }
           ]) }]
         };
       }
@@ -23,15 +31,24 @@ async function runTests() {
 
   // Test 1: Suggest Counters
   console.log("Test 1: suggestCounters for 'layla'...");
-  const suggestions = await suggestCounters(["layla"], [], mockMcpClient);
+  const suggestions = await suggestCounters(["layla"], [], [], [], mockMcpClient);
   if (suggestions.length > 0 && suggestions[0].hero.hero_id === "lancelot") {
     console.log("✅ Passed: Correctly identified counter for Layla.");
   } else {
     console.error("❌ Failed: Counter suggestion logic error.");
   }
 
-  // Test 2: Lane Check
-  console.log("Test 2: checkLaneCoverage for [Miya, Atlas]...");
+  // Test 2: Suggest Bans
+  console.log("Test 2: suggestBans highlighting 'Chou' for 'Kagura'...");
+  const bans = await suggestBans([], ["kagura"], [], [], mockMcpClient);
+  if (bans.length > 0 && bans[0].name === "Chou" && bans[0].lane) {
+    console.log("✅ Passed: Identified Chou as a ban for Kagura with lane metadata.");
+  } else {
+    console.error("❌ Failed: Ban suggestion logic error.", bans);
+  }
+
+  // Test 3: Lane Check
+  console.log("Test 3: checkLaneCoverage for [Miya, Atlas]...");
   const heroes = [
     { name: "Miya", role: ["Marksman"] },
     { name: "Atlas", role: ["Tank", "Support"] }
@@ -44,4 +61,7 @@ async function runTests() {
   }
 }
 
-runTests().catch(console.error);
+runTests().catch(e => {
+  console.error("Critical Test Failure:", e);
+  process.exit(1);
+});

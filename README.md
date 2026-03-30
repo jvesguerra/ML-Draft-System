@@ -6,18 +6,35 @@ A real-time drafting intelligence system for Mobile Legends. This application pr
 
 The easiest way to launch the entire system (Backend, Frontend, and MCP Proxy) is using the provided Python orchestrator.
 
-### 1. Installation
-Ensure you have Node.js and Python installed, then run:
+### 1. Prerequisites
+- **Node.js**: v18.0.0 or higher
+- **Python**: v3.8 or higher
+- **npm**: v9.0.0 or higher
+
+### 2. Installation
+Ensure you have the prerequisites installed, then run:
+
 ```powershell
-# Install dependencies for all tiers
-cd mcp-server; npm install
-cd ../backend; npm install
-cd ../frontend; npm install
+# 1. Install Node.js dependencies for each tier
+cd mcp-server; npm install; cd ..
+cd backend; npm install; cd ..
+cd frontend; npm install; cd ..
+
+# 2. Install Python orchestration dependencies
+pip install requests
 ```
 
-### 2. Run the Application
+### 3. Environment Setup
+The backend requires a `.env` file for configuration.
 ```powershell
-python execution/run_app.pyww
+# Copy the example environment file to the backend directory
+cp .env.example backend/.env
+```
+
+### 4. Run the Application
+The `run_app.py` script manages the lifecycle of all services.
+```powershell
+python execution/run_app.py
 ```
 *   **Frontend**: [http://localhost:5173](http://localhost:5173)
 *   **Backend API**: [http://localhost:3001](http://localhost:3001)

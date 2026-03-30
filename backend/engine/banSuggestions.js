@@ -25,7 +25,13 @@ export async function suggestBans(enemyPicks, alliedPicks, alliedBans, enemyBans
         const hId = entry.hero.hero_id;
         if (alreadyPickedOrBanned.has(hId)) continue;
         
-        banWeights[hId] = (banWeights[hId] || 0) + 2; // +2 for countering our current picks
+        if (!banWeights[hId]) {
+          banWeights[hId] = {
+            hero: entry.hero,
+            weight: 0
+          };
+        }
+        banWeights[hId].weight += 2; // +2 for countering our current picks
       }
     } catch (err) {
       console.error(`Engine error fetching counters for allied ${alliedId}:`, err);
@@ -34,8 +40,13 @@ export async function suggestBans(enemyPicks, alliedPicks, alliedBans, enemyBans
 
   // 2. Identify "Global Threat" heroes (could be expanded with meta data)
   // For now, we'll just sort the weights we have
-  return Object.entries(banWeights)
-    .sort((a, b) => b[1] - a[1])
+  return Object.values(banWeights)
+    .sort((a, b) => b.weight - a.weight)
     .slice(0, 5)
-    .map(([hero_id]) => ({ hero_id, reason: "Counters your picks" }));
+    .map(entry => ({ 
+      hero_id: entry.hero.hero_id, 
+      name: entry.hero.name,
+      lane: entry.hero.lane,
+      reason: "Counters your picks" 
+    }));
 }
