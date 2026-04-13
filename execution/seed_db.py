@@ -9,7 +9,8 @@ from psycopg2.extras import execute_values
 # Configuration
 # Using the Supabase pooler host and the specialized project-prefixed user.
 DB_URL = "postgresql://postgres.kwoukaobtrmblacyizeq:MBkHVnj5bG52i3gI@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"
-API_BASE = "https://mlbb.rone.dev/api"
+API_PRIMARY = "https://mlbb.rone.dev/api"
+API_BACKUP = "https://openmlbb.fastapicloud.dev/api"
 
 def get_db_connection():
     try:
@@ -117,7 +118,8 @@ def seed_data(conn):
     cur = conn.cursor()
     init_schema(cur)
     
-    if check_if_seeded_today(cur):
+    # We always allow manual forcing, but check log for default runs
+    if check_if_seeded_today(cur) and os.environ.get('FORCE_SEED') != 'true':
         print("✅ Data already seeded today. Skipping update.")
         cur.close()
         return True
@@ -150,13 +152,35 @@ def seed_data(conn):
         
         meta = rank_map.get(slug, {})
 
+        # Extract roles
+        sort_list = hero_info.get('sortid', [])
+        roles = []
+        for s in sort_list:
+            if isinstance(s, dict):
+                role_name = s.get('data', {}).get('sort_title')
+                if role_name:
+                    roles.append(role_name)
+        
+        # Extract lanes
+        road_list = hero_info.get('roadsort', [])
+        lanes = []
+        for rl in road_list:
+            if isinstance(rl, dict):
+                lane_name = rl.get('data', {}).get('road_sort_title', '').replace(' Lane', '')
+                if lane_name:
+                    lanes.append(lane_name)
+
+        # Damage Type
+        primary_role = roles[0].lower() if roles else ""
+        damage_type = "Magic" if "mage" in primary_role or "support" in primary_role else "Physical"
+
         hero_values.append((
             slug,
             numeric_id,
             name,
-            [],          # roles — not available in new API
-            [],          # lanes — not available in new API
-            'Unknown',   # damage_type — not available in new API
+            roles,
+            lanes,
+            damage_type,
             meta.get('hero_win_rate', 0.5),
             meta.get('hero_ban_rate', 0.01)
         ))
@@ -182,7 +206,9 @@ def seed_data(conn):
     relation_values = []
     for rec in pos_records:
         h = rec.get('data', {})
-        slug = slugify(h.get('hero', {}).get('data', {}).get('name', ''))
+        name = h.get('hero', {}).get('data', {}).get('name', '')
+        if not name: continue
+        slug = slugify(name)
         relations = h.get('relation', {})
         
         # 'weak' = countered by these heroes
