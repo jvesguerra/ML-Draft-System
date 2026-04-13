@@ -1,4 +1,4 @@
-const API_BASE = "https://mlbb-stats.rone.dev/api";
+const API_BASE = "https://mlbb.rone.dev/api";
 
 class HeroStore {
   constructor() {
@@ -14,12 +14,12 @@ class HeroStore {
         fetch(`${API_BASE}/heroes/positions?size=200&lang=en`),
         fetch(`${API_BASE}/heroes/rank?size=200&lang=en`)
       ]);
-      
+
       if (!posRes.ok || !rankRes.ok) throw new Error(`HTTP error! status: ${posRes.status} / ${rankRes.status}`);
-      
+
       const posJson = await posRes.json();
       const rankJson = await rankRes.json();
-      
+
       const records = posJson.data?.records || [];
       const ranks = rankJson.data?.records || [];
 
@@ -41,7 +41,7 @@ class HeroStore {
           .replace(/-/g, '_')
           .replace(/'/g, '')
           .replace(/\./g, '');
-        
+
         this.numericToId.set(h.hero_id, slug);
 
         const meta = rankMap.get(slug) || {};
@@ -52,12 +52,12 @@ class HeroStore {
           name: name,
           role: (h.hero?.data?.sortid || []).map(s => s.data?.sort_title).filter(Boolean),
           lane: (h.hero?.data?.roadsort || []).map(r => r.data?.road_sort_title?.replace(' Lane', '')).filter(Boolean),
-          damage_type: h.hero?.data?.sortid?.[0]?.data?.sort_title?.toLowerCase().includes("mage") || 
-                       h.hero?.data?.sortid?.[0]?.data?.sort_title?.toLowerCase().includes("support") ? "Magic" : "Physical",
+          damage_type: h.hero?.data?.sortid?.[0]?.data?.sort_title?.toLowerCase().includes("mage") ||
+            h.hero?.data?.sortid?.[0]?.data?.sort_title?.toLowerCase().includes("support") ? "Magic" : "Physical",
           relation: h.relation || {},
           win_rate: meta.hero_win_rate || 0.5,
           ban_rate: meta.hero_ban_rate || 0.01,
-          cc_type: [], 
+          cc_type: [],
           power_stage: "All"
         });
       });
@@ -88,7 +88,7 @@ class HeroStore {
   async getCountersDetailed(heroId) {
     const hero = this.getById(heroId);
     if (!hero) return [];
-    
+
     // 1. Get baseline counters from local relations (curated)
     const baselineIds = this.mapRelations(hero.relation?.weak);
     const counterSet = new Set();
@@ -99,7 +99,7 @@ class HeroStore {
       const response = await fetch(`${API_BASE}/heroes/${hero.numeric_id}/counters`);
       const json = await response.json();
       const records = json.data?.records || [];
-      
+
       records.forEach(r => {
         const hData = r.data || {};
         const name = hData.main_hero?.data?.name;
@@ -107,7 +107,7 @@ class HeroStore {
 
         const slug = name.toLowerCase().replace(/ /g, '_').replace(/-/g, '_').replace(/'/g, '').replace(/\./g, '');
         const counterHero = this.getById(slug);
-        
+
         if (counterHero && counterHero.hero_id !== heroId) {
           counterSet.add(counterHero.hero_id);
           finalCounters.push({
