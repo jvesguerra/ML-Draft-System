@@ -71,23 +71,46 @@ def check_if_seeded_today(cur):
 def slugify(name):
     return name.lower().replace(' ', '_').replace('-', '_').replace("'", '').replace('.', '')
 
+def fetch_with_fallback(endpoint):
+    """Utility to fetch from primary with automated fallback to backup."""
+    # Try Primary
+    try:
+        url = f"{API_PRIMARY}{endpoint}"
+        res = requests.get(url, timeout=15)
+        if res.ok:
+            return res
+        print(f"⚠️ Primary API returned {res.status_code} for {endpoint}")
+    except Exception as e:
+        print(f"⚠️ Primary API fetch failed: {e}")
+
+    # Try Backup
+    try:
+        print(f"🔄 Attempting backup API for {endpoint}...")
+        url = f"{API_BACKUP}{endpoint}"
+        res = requests.get(url, timeout=15)
+        if res.ok:
+            return res
+        print(f"❌ Backup API returned {res.status_code} for {endpoint}")
+    except Exception as e:
+        print(f"❌ Backup API fetch failed: {e}")
+    
+    return None
+
 def fetch_mlbb_data():
     print("🌐 Fetching hero data from MLBB API...")
+    
+    pos_res = fetch_with_fallback("/heroes/positions?size=200&lang=en")
+    rank_res = fetch_with_fallback("/heroes/rank?size=200&lang=en")
+
+    if not pos_res or not rank_res:
+        return None, None
+    
     try:
-        # Fetching positions (contains roles, lanes, and basic relations)
-        pos_res = requests.get(f"{API_BASE}/heroes/positions?size=200&lang=en", timeout=15)
-        # Fetching rankings (contains win/ban rates)
-        rank_res = requests.get(f"{API_BASE}/heroes/rank?size=200&lang=en", timeout=15)
-        
-        pos_res.raise_for_status()
-        rank_res.raise_for_status()
-        
         pos_data = pos_res.json().get('data', {}).get('records', [])
         rank_data = rank_res.json().get('data', {}).get('records', [])
-        
         return pos_data, rank_data
     except Exception as e:
-        print(f"❌ API fetch error: {e}")
+        print(f"❌ JSON parsing error: {e}")
         return None, None
 
 def seed_data(conn):
