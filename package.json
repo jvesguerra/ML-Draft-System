@@ -1,0 +1,12 @@
+{
+  "name": "mlbb-draft-system-root",
+  "version": "1.0.0",
+  "description": "Root for MLBB Draft System",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

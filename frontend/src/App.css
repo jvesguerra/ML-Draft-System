@@ -167,6 +167,7 @@
   cursor: pointer;
   transition: all 0.2s;
   font-size: 0.85rem;
+  text-transform: uppercase;
 }
 
 .role-tab.active {

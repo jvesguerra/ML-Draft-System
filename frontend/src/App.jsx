@@ -5,8 +5,8 @@ import './App.css';
 
 const API_BASE = "http://localhost:3001/api/draft";
 
-const ROLES = ["All", "Tank", "Fighter", "Assassin", "Mage", "Marksman", "Support"];
-const LANES = ["Gold", "EXP", "Mid", "Jungle", "Roam"];
+const ROLES = ["All", "tank", "fighter", "assassin", "mage", "Marksman", "support"];
+const LANES = ["Gold", "Exp", "Mid", "Jungle", "Roam"];
 
 export default function App() {
   const [alliedPicks, setAlliedPicks] = useState([]);
@@ -108,7 +108,7 @@ export default function App() {
   const filteredHeroes = useMemo(() => {
     return heroList.filter(h => {
       const matchesSearch = h.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesRole = activeRole === "All" || h.role.some(r => r.includes(activeRole));
+      const matchesRole = activeRole === "All" || h.role.some(r => r.toLowerCase().includes(activeRole.toLowerCase()));
       return matchesSearch && matchesRole;
     });
   }, [heroList, searchQuery, activeRole]);
@@ -119,8 +119,8 @@ export default function App() {
       <header className="draft-header glass">
         <div className="ban-section">
           {Array(5).fill(0).map((_, i) => (
-            <div 
-              key={`allied-ban-${i}`} 
+            <div
+              key={`allied-ban-${i}`}
               className={`ban-slot ${alliedBans[i] ? 'occupied' : ''} ${selectionMode === 'alliedBan' ? 'active-selection' : ''}`}
               onClick={() => setSelectionMode('alliedBan')}
             >
@@ -141,8 +141,8 @@ export default function App() {
 
         <div className="ban-section">
           {Array(5).fill(0).map((_, i) => (
-            <div 
-              key={`enemy-ban-${i}`} 
+            <div
+              key={`enemy-ban-${i}`}
               className={`ban-slot ${enemyBans[i] ? 'occupied' : ''} ${selectionMode === 'enemyBan' ? 'active-selection' : ''}`}
               onClick={() => setSelectionMode('enemyBan')}
             >
@@ -167,8 +167,8 @@ export default function App() {
             const pick = alliedPicks[i];
             const isActive = selectionMode === 'allied' && (alliedPicks.length === i || (alliedPicks.length === 5 && i === 4));
             return (
-              <div 
-                key={`allied-pick-${i}`} 
+              <div
+                key={`allied-pick-${i}`}
                 className={`pick-slot ${isActive ? 'active' : ''}`}
                 onClick={() => setSelectionMode('allied')}
               >
@@ -206,8 +206,8 @@ export default function App() {
         <div className="selection-area">
           <div className="search-container">
             <Search size={20} opacity={0.5} />
-            <input 
-              placeholder="Search hero name..." 
+            <input
+              placeholder="Search hero name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -216,8 +216,8 @@ export default function App() {
 
           <div className="role-tabs">
             {ROLES.map(role => (
-              <button 
-                key={role} 
+              <button
+                key={role}
                 className={`role-tab ${activeRole === role ? 'active' : ''}`}
                 onClick={() => setActiveRole(role)}
               >
@@ -228,11 +228,11 @@ export default function App() {
 
           <div className="hero-grid">
             {filteredHeroes.map(hero => {
-              const isTaken = [...alliedPicks, ...enemyPicks].some(p => p.id === hero.hero_id) || 
-                              [...alliedBans, ...enemyBans].includes(hero.hero_id);
+              const isTaken = [...alliedPicks, ...enemyPicks].some(p => p.id === hero.hero_id) ||
+                [...alliedBans, ...enemyBans].includes(hero.hero_id);
               return (
-                <div 
-                  key={hero.hero_id} 
+                <div
+                  key={hero.hero_id}
                   className={`hero-item ${isTaken ? 'taken' : ''}`}
                   onClick={() => !isTaken && validateAndAdd(hero)}
                 >
@@ -269,8 +269,8 @@ export default function App() {
             const pick = enemyPicks[i];
             const isActive = selectionMode === 'enemy' && (enemyPicks.length === i || (enemyPicks.length === 5 && i === 4));
             return (
-              <div 
-                key={`enemy-pick-${i}`} 
+              <div
+                key={`enemy-pick-${i}`}
                 className={`pick-slot enemy ${isActive ? 'active' : ''}`}
                 onClick={() => setSelectionMode('enemy')}
               >
@@ -305,7 +305,8 @@ export default function App() {
         </div>
       </main>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .active-selection { border-color: var(--accent-gold) !important; box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
         .hero-name-mini { font-size: 0.5rem; text-align: center; }
         .hero-item-circle { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-gold); color: black; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; }

@@ -4,6 +4,8 @@ A real-time drafting intelligence system for Mobile Legends. This application pr
 
 ## 🚀 Quick Start
 
+run gemini: npx @google/gemini-cli
+
 The easiest way to launch the entire system (Backend, Frontend, and MCP Proxy) is using the provided Python orchestrator.
 
 ### 1. Prerequisites
