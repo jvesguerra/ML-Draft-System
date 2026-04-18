@@ -106,6 +106,38 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [alliedPicks, enemyPicks, alliedBans, enemyBans]);
 
+  // Self-healing turn management: Always target the first empty slot in the sequence
+  useEffect(() => {
+    let typeCounts = { allied: 0, enemy: 0, alliedBan: 0, enemyBan: 0 };
+    let foundIndex = -1;
+
+    for (let i = 0; i < DRAFT_ORDER.length; i++) {
+        const step = DRAFT_ORDER[i];
+        const currentCount = typeCounts[step.type];
+        
+        let isOccupied = false;
+        if (step.type === 'allied') isOccupied = alliedPicks.length > currentCount;
+        else if (step.type === 'enemy') isOccupied = enemyPicks.length > currentCount;
+        else if (step.type === 'alliedBan') isOccupied = alliedBans.length > currentCount;
+        else if (step.type === 'enemyBan') isOccupied = enemyBans.length > currentCount;
+
+        if (!isOccupied) {
+            foundIndex = i;
+            break;
+        }
+        typeCounts[step.type]++;
+    }
+
+    // Move the "clock" to the first available empty slot
+    if (foundIndex !== -1 && foundIndex !== currentStep) {
+        setCurrentStep(foundIndex);
+        setSelectionMode(DRAFT_ORDER[foundIndex].type);
+    } else if (foundIndex === -1 && currentStep !== DRAFT_ORDER.length) {
+        // All slots filled
+        setCurrentStep(DRAFT_ORDER.length);
+    }
+  }, [alliedPicks, enemyPicks, alliedBans, enemyBans]);
+
   const validateAndAdd = (hero) => {
     const id = hero.hero_id;
     const allTaken = [...alliedPicks.map(p => p.id), ...enemyPicks.map(p => p.id), ...alliedBans, ...enemyBans];
@@ -124,13 +156,6 @@ export default function App() {
       setAlliedBans([...alliedBans, id]);
     } else if (selectionMode === 'enemyBan' && enemyBans.length < 5) {
       setEnemyBans([...enemyBans, id]);
-    }
-
-    // Auto-advance draft step
-    if (currentStep < DRAFT_ORDER.length - 1) {
-      const nextIdx = currentStep + 1;
-      setCurrentStep(nextIdx);
-      setSelectionMode(DRAFT_ORDER[nextIdx].type);
     }
   };
 
@@ -198,7 +223,7 @@ export default function App() {
         </div>
 
         <div style={{ textAlign: 'center' }}>
-          <h1 className="gold-gradient" style={{ margin: 0, fontSize: '1.5rem' }}>MLBB DRAFT v4.0.0</h1>
+          <h1 className="gold-gradient" style={{ margin: 0, fontSize: '1.5rem' }}>MLBB DRAFT v4.0.4</h1>
           <div style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '2px' }}>PROPER PICKING SYSTEM</div>
           <button className="reset-btn glass" onClick={resetDraft}>RESET DRAFT</button>
         </div>
