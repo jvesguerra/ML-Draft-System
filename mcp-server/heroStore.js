@@ -21,6 +21,7 @@ class HeroStore {
       connectionString: process.env.SUPABASE_DB_URL,
       ssl: { rejectUnauthorized: false }
     }) : null;
+    this.preferDbRelations = process.env.PREFER_DB_RELATIONS === 'true';
   }
 
   static toArray(val) {
@@ -339,8 +340,8 @@ class HeroStore {
     const counterSet = new Set();
     const finalCounters = [];
 
-    // Fetch detailed stats from remote API (only if initialized from API)
-    if (!this.pool || this.useApiFirst) {
+    // Fetch detailed stats from remote API (Skip if PREFER_DB_RELATIONS is true)
+    if (!this.preferDbRelations && (!this.pool || this.useApiFirst)) {
       try {
         const response = await this.fetchWithFallback(`/heroes/${hero.numeric_id}/counters`);
         const json = await response.json();

@@ -55,21 +55,27 @@ export async function suggestBans(enemyPicks, alliedPicks, alliedBans, enemyBans
     }
   }
 
+  const isInitialPhase = cleanAllied.length === 0;
+
   // 3. Composite Ban Score (CBS) calculation
   const compositeScores = allHeroes
     .filter(h => !alreadyPickedOrBanned.has(h.hero_id))
     .map(h => {
       const threat = banWeights[h.hero_id]?.threat || 0;
-      const metaStrength = 0.5 * ((h.ban_rate || 0) / maxBR) + 0.5 * ((h.win_rate || 0.5) / maxWR);
-      const cbs = 0.6 * Math.min(threat, 10) + 0.4 * (metaStrength * 10);
+      // Meta score favors Win Rate (80%) over Ban Rate (20%)
+      const metaStrength = 0.2 * ((h.ban_rate || 0) / maxBR) + 0.8 * ((h.win_rate || 0.5) / maxWR);
       
-      const isPriority = metaStrength > 0.85;
+      // If no picks yet, it's 100% meta. Otherwise, it's 60/40 threat/meta.
+      const cbs = isInitialPhase ? (metaStrength * 10) : (0.6 * Math.min(threat, 10) + 0.4 * (metaStrength * 10));
+      
+      let reason = "Global meta threat";
+      if (isInitialPhase) reason = `Highest win rate (${((h.win_rate || 0) * 100).toFixed(1)}%)`;
+      else if (threat > 0) reason = `Direct counter (+${threat.toFixed(1)}% threat)`;
       
       return { 
         ...h, 
         cbs, 
-        isPriority,
-        reason: isPriority ? "Priority Meta Ban" : (threat > 0 ? `Direct counter (+${threat.toFixed(1)}% threat)` : "Global threat")
+        reason
       };
     });
 
@@ -77,9 +83,11 @@ export async function suggestBans(enemyPicks, alliedPicks, alliedBans, enemyBans
     .sort((a, b) => b.cbs - a.cbs)
     .slice(0, 5)
     .map(s => ({
-      hero_id: s.hero_id,
-      name: s.name,
-      lane: s.lane,
+      hero: {
+        hero_id: s.hero_id,
+        name: s.name,
+        lane: s.lane
+      },
       reason: s.reason
     }));
 }

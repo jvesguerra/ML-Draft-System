@@ -42,6 +42,7 @@ export default function App() {
 
   const [heroList, setHeroList] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
+  const [suggestedBans, setSuggestedBans] = useState([]);
   const [synergySuggestions, setSynergySuggestions] = useState([]);
   const [composition, setComposition] = useState({ total: 0, flags: [] });
 
@@ -66,14 +67,6 @@ export default function App() {
   }, []);
 
   const updateAnalysis = async () => {
-    const hasAnyPick = alliedPicks.length > 0 || enemyPicks.length > 0;
-    if (!hasAnyPick) {
-      setSuggestions([]);
-      setSynergySuggestions([]);
-      setComposition({ total: 0, flags: [] });
-      return;
-    }
-
     setLoading(true);
     try {
       const aIds = alliedPicks.map(p => p.id).join(",");
@@ -92,6 +85,7 @@ export default function App() {
       ]);
 
       setSuggestions(recRes.data.suggestions || []);
+      setSuggestedBans(recRes.data.suggestedBans || []);
       setSynergySuggestions(recRes.data.synergySuggestions || []);
       setComposition(compRes.data);
     } catch (e) {
@@ -337,15 +331,21 @@ export default function App() {
 
           <div className="suggestions-bar">
             <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Trophy size={14} /> RECOMMENDED FOR CURRENT TURN
+              {selectionMode.includes('Ban') ? (
+                <><Ban size={14} /> RECOMMENDED BANS</>
+              ) : (
+                <><Trophy size={14} /> RECOMMENDED FOR CURRENT TURN</>
+              )}
             </div>
             <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px' }}>
-              {suggestions.map((s, i) => (
+              {(selectionMode.includes('Ban') ? suggestedBans : suggestions).map((s, i) => (
                 <div key={i} className="suggestion-pill glass" onClick={() => validateAndAdd(s.hero)}>
                   {s.hero?.name}
                 </div>
               ))}
-              {suggestions.length === 0 && <div style={{ fontSize: '0.8rem', opacity: 0.3 }}>No data-driven suggestions yet...</div>}
+              {(selectionMode.includes('Ban') ? suggestedBans : suggestions).length === 0 && (
+                <div style={{ fontSize: '0.8rem', opacity: 0.3 }}>No data-driven suggestions yet...</div>
+              )}
             </div>
           </div>
         </div>
@@ -372,7 +372,6 @@ export default function App() {
                   {pick ? (
                     <>
                       <div className="pick-name">{pick.name}</div>
-                      <div className="pick-meta">Priority Target</div>
                       <button className="remove-btn-small" style={{ left: 10, right: 'auto' }} onClick={(e) => { e.stopPropagation(); removePick(pick.id, 'enemy'); }}>×</button>
                     </>
                   ) : <div className="pick-empty">...</div>}
