@@ -49,7 +49,7 @@ export default function App() {
   const [activeRole, setActiveRole] = useState("All");
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectionMode, setSelectionMode] = useState(DRAFT_ORDER[0].type); 
+  const [selectionMode, setSelectionMode] = useState(DRAFT_ORDER[0].type);
 
   // Fetch heroes
   useEffect(() => {
@@ -158,19 +158,19 @@ export default function App() {
   const isActiveSlot = (type, index) => {
     if (currentStep >= DRAFT_ORDER.length) return false;
     const step = DRAFT_ORDER[currentStep];
-    
+
     if (step.type !== type) return false;
-    
+
     // Find absolute index of current type in DRAFT_ORDER
     let typeIndex = -1;
     let count = 0;
     for (let i = 0; i <= currentStep; i++) {
-        if (DRAFT_ORDER[i].type === type) {
-            count++;
-        }
+      if (DRAFT_ORDER[i].type === type) {
+        count++;
+      }
     }
     typeIndex = count - 1;
-    
+
     return typeIndex === index;
   };
 
@@ -380,8 +380,8 @@ export default function App() {
         .remove-btn-small { position: absolute; top: 10px; right: 10px; background: rgba(255,59,48,0.2); border: none; color: #ff3b30; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
         .remove-btn-small:hover { background: #ff3b30; color: white; }
         .sidebar-label { font-weight: 800; font-size: 0.9rem; letter-spacing: 1px; margin-bottom: 5px; }
-        .reset-btn { margin-top: 10px; padding: 4px 12px; font-size: 0.6rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: all 0.3s; opacity: 0.6; }
-        .reset-btn:hover { opacity: 1; border-color: var(--accent-red); color: var(--accent-red); }
+        .reset-btn { margin-top: 10px; padding: 4px 12px; font-size: 0.6rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer; transition: all 0.3s; opacity: 0.6; color: white; }
+        .reset-btn:hover { opacity: 1; border-color: white; color: white; background: rgba(255,255,255,0.1); }
         .active-slot { border: 2px solid var(--accent-gold) !important; box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
       `}} />
     </div>
