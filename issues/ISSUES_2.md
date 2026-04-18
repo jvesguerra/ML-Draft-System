@@ -1,42 +1,37 @@
 # ISSUE_2: Vercel 404 NOT_FOUND on Deployment
 
 ## Problem Description
-Despite updating `vercel.json`, the application returns a `404: NOT_FOUND` error when accessing the root URL or API endpoints on Vercel.
+Despite setting the Root Directory to `.` and fixing the `vercel.json` schema (removing `handle`), the application still returns `404: NOT_FOUND` on the root URL and API endpoints.
+
+## Update (April 19, 2026)
+- **Root Directory:** Confirmed set to `.`
+- **Schema Fix:** `handle` property removed.
+- **Result:** Still 404.
 
 ## Potential Causes
 
-### 1. Vercel Dashboard "Root Directory" Setting
-If the "Root Directory" in Vercel Project Settings was set to `frontend` during the initial import, Vercel will ignore the `vercel.json` located at the actual workspace root. It will only look for configuration inside the `frontend/` folder.
+### 1. Legacy "builds" Property Conflict
+Vercel now prefers "Zero Config". The `builds` field in `vercel.json` is considered legacy and often conflicts with the modern detection engine, especially in monorepos. When `builds` is used, Vercel disables many of its automatic features, which can lead to misrouted static files.
 
-**Solution:** 
-- Go to Vercel **Settings > General**.
-- Ensure **Root Directory** is empty or set to `.` (the repository root).
+### 2. Output Directory Mismatch
+In the Vercel Dashboard, if the **Output Directory** is not explicitly set to `frontend/dist`, Vercel might be looking for files in a default `./public` or `./dist` folder at the root, which doesn't exist.
 
-### 2. Output Directory Override
-The Vercel UI has an "Output Directory" setting. If this is set to `dist`, Vercel looks for a folder named `dist` at the root. However, our build command `npm run build --prefix frontend` creates the output at `frontend/dist`.
+### 3. Missing Root index.html
+Vercel's routing expects `index.html` to be at the root of the **Deployment Output**. Because our build happens in `frontend/dist`, we need to tell Vercel that this specific folder is the source of our static site.
 
-**Solution:**
-- In Vercel **Settings > General**, set **Output Directory** to `frontend/dist`.
-- Alternatively, ensure "Framework Preset" is set to **Other** so Vercel relies entirely on `vercel.json`.
+## Recommended Solutions
 
-### 3. Build Step Execution Order
-In some cases, the `@vercel/static-build` runtime might not correctly trigger the `npm install` for the root or sub-directories if the dependency tree is complex.
+### Solution A: The "Zero Config" Approach (Preferred)
+Remove the `builds` section from `vercel.json` and let the Vercel Dashboard handle the build logic.
 
-**Solution:**
-- Change the Build Command in Vercel to: `npm install && npm run build --prefix frontend`.
+1.  **Update `vercel.json`** to only contain `functions` and `rewrites`.
+2.  **Vercel Dashboard Settings:**
+    - **Build Command:** `npm run build --prefix frontend`
+    - **Output Directory:** `frontend/dist`
+    - **Install Command:** `npm install` (at root)
 
-### 4. Incorrect Rewrite Destination
-Vercel's legacy `builds` behavior (which we are using to support the monorepo) sometimes requires the destination to be explicitly mapped to the generated serverless function path.
+### Solution B: Clean API Mapping
+Ensure the API destination points to the relative path of the function without the leading slash if Vercel is behaving strictly, though `/backend/index.js` is usually correct.
 
-**Solution:**
-Update the API rewrite to:
-```json
-{ "source": "/api/(.*)", "destination": "/backend/index.js" }
-```
-
-## Recommended Fix Strategy
-
-1. **Verify Root Directory:** Confirm the Vercel project is looking at the top-level folder of your repo.
-2. **Framework Preset:** Ensure it is "Other".
-3. **Clean Re-deploy:** After updating `vercel.json` in Git, go to the Vercel "Deployments" tab and trigger a "Redeploy" with "Build Cache" disabled.
-4. **Logs:** Check the **Functions** tab in Vercel. If `backend/index.js` is not listed there, Vercel failed to recognize the backend as a serverless function.
+## Action Plan
+I will now simplify `vercel.json` to use the modern `functions` and `rewrites` syntax, bypassing the legacy build engine.
