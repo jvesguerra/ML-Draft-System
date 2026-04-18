@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Search, Trophy, Shield, Sword, X, Ban, Users, Info } from 'lucide-react';
 import './App.css';
 
-const API_BASE = "http://localhost:3001/api/draft";
+const API_BASE = import.meta.env.VITE_API_BASE || "/api/draft";
 
 const ROLES = ["All", "tank", "fighter", "assassin", "mage", "Marksman", "support"];
 const LANES = ["Gold", "EXP", "Mid", "Jungle", "Roam"];

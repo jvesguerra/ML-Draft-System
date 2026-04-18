@@ -16,27 +16,32 @@ app.use(express.json());
 app.use("/api/draft", draftRoutes);
 
 // Health Check
-app.get("/health", (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({ status: "ok", port: PORT });
 });
 
 // Root
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   res.send("MLBB Draft System Backend API (External-API-Proxied) is running.");
 });
 
-async function bootstrap() {
+async function init() {
   try {
-    console.log("Bootstrapping backend and connecting to MCP...");
+    console.log("Initializing backend and connecting to MCP...");
     await mcpBridge.connect();
     
-    app.listen(PORT, () => {
-      console.log(`Backend Server listening at http://localhost:${PORT}`);
-    });
+    // Only listen if not running on Vercel
+    if (!process.env.VERCEL) {
+      app.listen(PORT, () => {
+        console.log(`Backend Server listening at http://localhost:${PORT}`);
+      });
+    }
   } catch (err) {
-    console.error("Failed to start backend:", err);
-    process.exit(1);
+    console.error("Failed to initialize backend:", err);
+    if (!process.env.VERCEL) process.exit(1);
   }
 }
 
-bootstrap();
+init();
+
+export default app;
