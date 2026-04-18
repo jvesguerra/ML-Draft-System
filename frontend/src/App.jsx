@@ -6,7 +6,7 @@ import './App.css';
 const API_BASE = "http://localhost:3001/api/draft";
 
 const ROLES = ["All", "tank", "fighter", "assassin", "mage", "Marksman", "support"];
-const LANES = ["Gold", "Exp", "Mid", "Jungle", "Roam"];
+const LANES = ["Gold", "EXP", "Mid", "Jungle", "Roam"];
 
 const DRAFT_ORDER = [
   // Bans 1 (3 Allied, then 3 Enemy)
@@ -113,8 +113,10 @@ export default function App() {
     if (allTaken.includes(id)) return;
 
     if (selectionMode === 'allied' && alliedPicks.length < 5) {
-      const defaultLane = hero.lane && hero.lane.length > 0 ? hero.lane[0] : "";
-      const defaultRole = hero.role && hero.role.length > 0 ? hero.role[0] : "";
+      const heroLanes = Array.isArray(hero.lane) ? hero.lane : [hero.lane].filter(Boolean);
+      const heroRoles = Array.isArray(hero.role) ? hero.role : [hero.role].filter(Boolean);
+      const defaultLane = heroLanes.length > 0 ? heroLanes[0] : "";
+      const defaultRole = heroRoles.length > 0 ? heroRoles[0] : "";
       setAlliedPicks([...alliedPicks, { id: id, name: hero.name, role: defaultRole, lane: defaultLane }]);
     } else if (selectionMode === 'enemy' && enemyPicks.length < 5) {
       setEnemyPicks([...enemyPicks, { id: id, name: hero.name }]);

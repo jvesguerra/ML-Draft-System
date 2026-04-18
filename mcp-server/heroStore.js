@@ -23,6 +23,15 @@ class HeroStore {
     }) : null;
   }
 
+  static toArray(val) {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string') {
+        return val.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    return [val];
+  }
+
   async fetchWithFallback(endpoint) {
     // Try Primary
     try {
@@ -77,8 +86,8 @@ class HeroStore {
           hero_id: h.hero_id,
           numeric_id: h.numeric_id,
           name: h.name,
-          role: h.role || [],
-          lane: h.lane || [],
+          role: HeroStore.toArray(h.role),
+          lane: HeroStore.toArray(h.lane),
           damage_type: h.damage_type || "Physical",
           win_rate: parseFloat(h.win_rate) || 0.5,
           ban_rate: parseFloat(h.ban_rate) || 0.01,

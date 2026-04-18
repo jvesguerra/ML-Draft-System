@@ -121,27 +121,16 @@ server.tool(
 
     const hasPhysical = heroes.some(h => h.damage_type === "Physical");
     const hasMagic    = heroes.some(h => h.damage_type === "Magic");
-    if (hasPhysical && hasMagic) { score.total += 20; } 
+    if (hasPhysical && hasMagic) { score.total += 35; } 
     else { score.flags.push("⚠️ One-sided damage — enemy can build one resistance type"); }
 
     const hasFrontline = heroes.some(h => h.role.some(r => r.includes("Tank") || r.includes("Fighter")));
-    if (hasFrontline) { score.total += 20; }
+    if (hasFrontline) { score.total += 35; }
     else { score.flags.push("⚠️ No frontline — team is fragile against divers"); }
 
-    // Unique Roles count as CC/Utility diversity in this simple version
     const uniqueRoles = new Set(heroes.flatMap(h => h.role));
-    if (uniqueRoles.size >= 3) { score.total += 20; }
+    if (uniqueRoles.size >= 3) { score.total += 30; }
     else { score.flags.push("⚠️ Low role diversity — restricted utility in teamfights"); }
-
-    // Multi-lane coverage
-    const lanes = new Set(heroes.flatMap(h => h.lane || []));
-    const required = ["Gold", "EXP", "Mid", "Jungle", "Roam"];
-    const missing = required.filter(l => !lanes.has(l));
-    
-    score.total += (Math.max(0, 5 - missing.length) / 5) * 40; // Max 40 points for lanes
-    if (missing.length > 0) {
-      score.flags.push(`⚠️ Missing lane(s): ${missing.join(", ")}`);
-    }
 
     return {
       content: [{ type: "text", text: JSON.stringify(score) }],
