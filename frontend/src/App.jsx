@@ -8,6 +8,32 @@ const API_BASE = "http://localhost:3001/api/draft";
 const ROLES = ["All", "tank", "fighter", "assassin", "mage", "Marksman", "support"];
 const LANES = ["Gold", "Exp", "Mid", "Jungle", "Roam"];
 
+const DRAFT_ORDER = [
+  // Bans 1 (3 Allied, then 3 Enemy)
+  { type: 'alliedBan', label: 'Allied Ban 1' },
+  { type: 'alliedBan', label: 'Allied Ban 2' },
+  { type: 'alliedBan', label: 'Allied Ban 3' },
+  { type: 'enemyBan', label: 'Enemy Ban 1' },
+  { type: 'enemyBan', label: 'Enemy Ban 2' },
+  { type: 'enemyBan', label: 'Enemy Ban 3' },
+  // Bans 2 (2 Allied, then 2 Enemy)
+  { type: 'alliedBan', label: 'Allied Ban 4' },
+  { type: 'alliedBan', label: 'Allied Ban 5' },
+  { type: 'enemyBan', label: 'Enemy Ban 4' },
+  { type: 'enemyBan', label: 'Enemy Ban 5' },
+  // Picks (B1, R1-2, B2-3, R3-4, B4-5, R5)
+  { type: 'allied', label: 'Allied Pick 1' },
+  { type: 'enemy', label: 'Enemy Pick 1' },
+  { type: 'enemy', label: 'Enemy Pick 2' },
+  { type: 'allied', label: 'Allied Pick 2' },
+  { type: 'allied', label: 'Allied Pick 3' },
+  { type: 'enemy', label: 'Enemy Pick 3' },
+  { type: 'enemy', label: 'Enemy Pick 4' },
+  { type: 'allied', label: 'Allied Pick 4' },
+  { type: 'allied', label: 'Allied Pick 5' },
+  { type: 'enemy', label: 'Enemy Pick 5' },
+];
+
 export default function App() {
   const [alliedPicks, setAlliedPicks] = useState([]);
   const [enemyPicks, setEnemyPicks] = useState([]);
@@ -22,7 +48,8 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeRole, setActiveRole] = useState("All");
   const [loading, setLoading] = useState(false);
-  const [selectionMode, setSelectionMode] = useState("allied"); // allied, enemy, alliedBan, enemyBan
+  const [currentStep, setCurrentStep] = useState(0);
+  const [selectionMode, setSelectionMode] = useState(DRAFT_ORDER[0].type); 
 
   // Fetch heroes
   useEffect(() => {
@@ -96,6 +123,22 @@ export default function App() {
     } else if (selectionMode === 'enemyBan' && enemyBans.length < 5) {
       setEnemyBans([...enemyBans, id]);
     }
+
+    // Auto-advance draft step
+    if (currentStep < DRAFT_ORDER.length - 1) {
+      const nextIdx = currentStep + 1;
+      setCurrentStep(nextIdx);
+      setSelectionMode(DRAFT_ORDER[nextIdx].type);
+    }
+  };
+
+  const resetDraft = () => {
+    setAlliedPicks([]);
+    setEnemyPicks([]);
+    setAlliedBans([]);
+    setEnemyBans([]);
+    setCurrentStep(0);
+    setSelectionMode(DRAFT_ORDER[0].type);
   };
 
   const removePick = (id, type) => {
@@ -112,6 +155,24 @@ export default function App() {
       return matchesSearch && matchesRole;
     });
   }, [heroList, searchQuery, activeRole]);
+  const isActiveSlot = (type, index) => {
+    if (currentStep >= DRAFT_ORDER.length) return false;
+    const step = DRAFT_ORDER[currentStep];
+    
+    if (step.type !== type) return false;
+    
+    // Find absolute index of current type in DRAFT_ORDER
+    let typeIndex = -1;
+    let count = 0;
+    for (let i = 0; i <= currentStep; i++) {
+        if (DRAFT_ORDER[i].type === type) {
+            count++;
+        }
+    }
+    typeIndex = count - 1;
+    
+    return typeIndex === index;
+  };
 
   return (
     <div className="draft-container">
@@ -121,7 +182,7 @@ export default function App() {
           {Array(5).fill(0).map((_, i) => (
             <div
               key={`allied-ban-${i}`}
-              className={`ban-slot ${alliedBans[i] ? 'occupied' : ''} ${selectionMode === 'alliedBan' ? 'active-selection' : ''}`}
+              className={`ban-slot ${alliedBans[i] ? 'occupied' : ''} ${selectionMode === 'alliedBan' && isActiveSlot('alliedBan', i) ? 'active-slot' : ''} ${selectionMode === 'alliedBan' ? 'active-selection' : ''}`}
               onClick={() => setSelectionMode('alliedBan')}
             >
               {alliedBans[i] ? (
@@ -136,14 +197,15 @@ export default function App() {
 
         <div style={{ textAlign: 'center' }}>
           <h1 className="gold-gradient" style={{ margin: 0, fontSize: '1.5rem' }}>MLBB DRAFT v4.0.0</h1>
-          <div style={{ fontSize: '0.7rem', opacity: 0.5 }}>STRATEGIC ANALYSIS ENGINE</div>
+          <div style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '2px' }}>PROPER PICKING SYSTEM</div>
+          <button className="reset-btn glass" onClick={resetDraft}>RESET DRAFT</button>
         </div>
 
         <div className="ban-section">
           {Array(5).fill(0).map((_, i) => (
             <div
               key={`enemy-ban-${i}`}
-              className={`ban-slot ${enemyBans[i] ? 'occupied' : ''} ${selectionMode === 'enemyBan' ? 'active-selection' : ''}`}
+              className={`ban-slot ${enemyBans[i] ? 'occupied' : ''} ${selectionMode === 'enemyBan' && isActiveSlot('enemyBan', i) ? 'active-slot' : ''} ${selectionMode === 'enemyBan' ? 'active-selection' : ''}`}
               onClick={() => setSelectionMode('enemyBan')}
             >
               {enemyBans[i] ? (
@@ -165,11 +227,12 @@ export default function App() {
           </div>
           {Array(5).fill(0).map((_, i) => {
             const pick = alliedPicks[i];
-            const isActive = selectionMode === 'allied' && (alliedPicks.length === i || (alliedPicks.length === 5 && i === 4));
+            const isTurn = isActiveSlot('allied', i);
+            const isActive = selectionMode === 'allied' && (isTurn || (alliedPicks.length === i));
             return (
               <div
                 key={`allied-pick-${i}`}
-                className={`pick-slot ${isActive ? 'active' : ''}`}
+                className={`pick-slot ${isActive ? 'active' : ''} ${isTurn ? 'active-slot' : ''}`}
                 onClick={() => setSelectionMode('allied')}
               >
                 <div className="pick-circle">
@@ -267,11 +330,12 @@ export default function App() {
           </div>
           {Array(5).fill(0).map((_, i) => {
             const pick = enemyPicks[i];
-            const isActive = selectionMode === 'enemy' && (enemyPicks.length === i || (enemyPicks.length === 5 && i === 4));
+            const isTurn = isActiveSlot('enemy', i);
+            const isActive = selectionMode === 'enemy' && (isTurn || (enemyPicks.length === i));
             return (
               <div
                 key={`enemy-pick-${i}`}
-                className={`pick-slot enemy ${isActive ? 'active' : ''}`}
+                className={`pick-slot enemy ${isActive ? 'active' : ''} ${isTurn ? 'active-slot' : ''}`}
                 onClick={() => setSelectionMode('enemy')}
               >
                 <div className="pick-circle">
@@ -307,7 +371,7 @@ export default function App() {
 
       <style dangerouslySetInnerHTML={{
         __html: `
-        .active-selection { border-color: var(--accent-gold) !important; box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+        .active-selection { border-color: var(--accent-gold) !important; box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); outline: 2px solid var(--accent-gold); }
         .hero-name-mini { font-size: 0.5rem; text-align: center; }
         .hero-item-circle { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-gold); color: black; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; }
         .hero-item.taken .hero-item-circle { background: #444; color: #888; }
@@ -316,6 +380,9 @@ export default function App() {
         .remove-btn-small { position: absolute; top: 10px; right: 10px; background: rgba(255,59,48,0.2); border: none; color: #ff3b30; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
         .remove-btn-small:hover { background: #ff3b30; color: white; }
         .sidebar-label { font-weight: 800; font-size: 0.9rem; letter-spacing: 1px; margin-bottom: 5px; }
+        .reset-btn { margin-top: 10px; padding: 4px 12px; font-size: 0.6rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: all 0.3s; opacity: 0.6; }
+        .reset-btn:hover { opacity: 1; border-color: var(--accent-red); color: var(--accent-red); }
+        .active-slot { border: 2px solid var(--accent-gold) !important; box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
       `}} />
     </div>
   );
