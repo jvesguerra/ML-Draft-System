@@ -8,5 +8,18 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
-  }
+  },
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jvesguerra/ML-Draft-System.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/jvesguerra/ML-Draft-System/issues"
+  },
+  "homepage": "https://github.com/jvesguerra/ML-Draft-System#readme"
 }
