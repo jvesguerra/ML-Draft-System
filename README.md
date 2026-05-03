@@ -18,14 +18,17 @@ The easiest way to launch the entire system (Backend, Frontend, and MCP Proxy) i
 Ensure you have the prerequisites installed, then run:
 
 ```powershell
-# 1. Install Node.js dependencies for each tier
-cd mcp-server; npm install; cd ..
-cd backend; npm install; cd ..
-cd frontend; npm install; cd ..
-
-# 2. Install Python orchestration dependencies
-pip install requests
+# Install all dependencies across the workspace
+npm install
 ```
+
+### 3. Documentation
+Detailed information about the system can be found in the `docs/` directory:
+
+- **[Project Flow](docs/FLOW.md)**: Logic and drafting heuristics.
+- **[Developer Guide](docs/DEV_GUIDE.md)**: How to extend the system.
+- **[Directory Map](docs/FOLDERS.md)**: Deep dive into the project structure.
+- **[Version History](docs/improvements/)**: Changelog and evolution of the draft engine.
 
 ### 3. Environment Setup
 The backend requires a `.env` file for configuration.

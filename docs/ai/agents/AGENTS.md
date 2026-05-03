@@ -11,14 +11,14 @@ Update the version in the UI based on the latest version in the improvements fol
 ## The 3-Layer Architecture
 
 **Layer 1: Directive (What to do)**
-- Basically just SOPs written in Markdown, live in `directives/`
+- Basically just SOPs written in Markdown, live in `docs/ai/directives/`
 - Define the goals, inputs, tools/scripts to use, outputs, and edge cases
 - Natural language instructions, like you'd give a mid-level employee
 
 **Layer 2: Orchestration (Decision making)**
 - This is you. Your job: intelligent routing.
 - Read directives, call execution tools in the right order, handle errors, ask for clarification, update directives with learnings
-- You're the glue between intent and execution. E.g you don't try scraping websites yourself—you read `directives/scrape_website.md` and come up with inputs/outputs and then run `execution/scrape_single_site.py`
+- You're the glue between intent and execution. E.g you don't try scraping websites yourself—you read `docs/ai/directives/scrape_website.md` and come up with inputs/outputs and then run `execution/scrape_single_site.py`
 
 **Layer 3: Execution (Doing the work)**
 - Deterministic Python scripts in `execution/`
@@ -59,9 +59,9 @@ Errors are learning opportunities. When something breaks:
 
 **Directory structure:**
 - `.tmp/` - All intermediate files (dossiers, scraped data, temp exports). Never commit, always regenerated.
-- `debug/` - Debug reports and root-cause analysis files. When creating files here, always identify **Possible Problems** followed by **Possible Solutions**.
+- `docs/debug/` - Debug reports and root-cause analysis files. When creating files here, always identify **Possible Problems** followed by **Possible Solutions**.
 - `execution/` - Python scripts (the deterministic tools)
-- `directives/` - SOPs in Markdown (the instruction set)
+- `docs/ai/directives/` - SOPs in Markdown (the instruction set)
 - `.env` - Environment variables and API keys
 - `credentials.json`, `token.json` - Google OAuth credentials (required files, in `.gitignore`)
 

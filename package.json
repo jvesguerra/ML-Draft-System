@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "description": "Root for MLBB Draft System",
   "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "install-all": "npm install && npm install --prefix backend && npm install --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\""
+    "build": "npm run build -w frontend",
+    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "install-all": "npm install"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
