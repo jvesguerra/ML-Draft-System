@@ -23,5 +23,8 @@
   "bugs": {
     "url": "https://github.com/jvesguerra/ML-Draft-System/issues"
   },
-  "homepage": "https://github.com/jvesguerra/ML-Draft-System#readme"
+  "homepage": "https://github.com/jvesguerra/ML-Draft-System#readme",
+  "engines": {
+    "node": "20.x"
+  }
 }

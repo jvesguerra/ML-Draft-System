@@ -59,6 +59,7 @@ Errors are learning opportunities. When something breaks:
 
 **Directory structure:**
 - `.tmp/` - All intermediate files (dossiers, scraped data, temp exports). Never commit, always regenerated.
+- `debug/` - Debug reports and root-cause analysis files. When creating files here, always identify **Possible Problems** followed by **Possible Solutions**.
 - `execution/` - Python scripts (the deterministic tools)
 - `directives/` - SOPs in Markdown (the instruction set)
 - `.env` - Environment variables and API keys

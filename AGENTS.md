@@ -4,6 +4,10 @@
 
 You operate within a 3-layer architecture that separates concerns to maximize reliability. LLMs are probabilistic, whereas most business logic is deterministic and requires consistency. This system fixes that mismatch.
 
+## Version
+
+Update the version in the UI based on the latest version in the improvements folder
+
 ## The 3-Layer Architecture
 
 **Layer 1: Directive (What to do)**
@@ -55,6 +59,7 @@ Errors are learning opportunities. When something breaks:
 
 **Directory structure:**
 - `.tmp/` - All intermediate files (dossiers, scraped data, temp exports). Never commit, always regenerated.
+- `debug/` - Debug reports and root-cause analysis files. When creating files here, always identify **Possible Problems** followed by **Possible Solutions**.
 - `execution/` - Python scripts (the deterministic tools)
 - `directives/` - SOPs in Markdown (the instruction set)
 - `.env` - Environment variables and API keys

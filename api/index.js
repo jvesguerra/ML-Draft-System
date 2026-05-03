@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import draftRoutes from "./routes/draft.js";
-import { mcpBridge } from "./mcp/client.js";
+import draftRoutes from "../backend/routes/draft.js";
+import { mcpBridge } from "../backend/mcp/client.js";
 
 dotenv.config();
 
